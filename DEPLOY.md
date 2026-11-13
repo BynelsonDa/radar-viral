@@ -1,99 +1,93 @@
-# Radar Viral en Render
+# Despliegue gratuito: Render Static Site + GitHub Actions
 
-La aplicación usa tres servicios en la misma región: una web pública, un recolector
-privado y MySQL privado con disco persistente. `render.yaml` describe los tres.
-El HTML portátil no se utiliza en este despliegue.
+La configuración activa `render.yaml` crea **un solo sitio estático gratuito**.
+No usa los servicios MySQL, web ni worker de pago de la propuesta anterior.
+No se ha creado ningún recurso de pago durante la preparación.
 
-## Antes de crear recursos
+## Activación
 
-La configuración selecciona **Standard** para MySQL (memoria suficiente para el
-motor), **Starter** para la web y el worker, y un disco de 10 GB. Son recursos
-**de pago**. Revisa el presupuesto que muestre Render antes de confirmar. No se
-han creado recursos de Render automáticamente por guardar este archivo.
+1. En GitHub abre el repositorio `BynelsonDa/radar-viral` → **Settings → Secrets
+   and variables → Actions → New repository secret**. Guarda la clave real de
+   Google con el nombre **YOUTUBE_API_KEY**. No la pegues en el chat ni la subas
+   al repositorio. El secreto proxy de Codex no se copia automáticamente allí.
+2. Los cambios deben estar en `main`: las tareas programadas de GitHub solo
+   ejecutan workflows que existen en la rama principal. En **Actions → Actualizar
+   datos de YouTube → Run workflow** puedes comprobar la primera recolección.
+3. En Render elige **New → Blueprint**, conecta este repositorio y selecciona
+   `main`. El archivo `render.yaml` define únicamente un servicio de runtime
+   `static`, sin base de datos, disco ni plan de pago. Revisa el resumen antes
+   de crear. Render debe tener permiso para leer el repositorio privado.
+4. Render genera una URL HTTPS para `radar-viral`. Al terminar el primer build,
+   abre esa URL. No necesitas una terminal ni instalar nada en tu computador.
 
-Estimación consultada el 13 de noviembre de 2026: US$7 web + US$7 worker +
-US$25 MySQL + US$2,50 disco = **US$41,50/mes**, antes de impuestos, cargos del
-workspace y consumos adicionales. Confirma siempre el presupuesto final de Render.
+También puedes crear **New → Static Site** con estos valores:
 
-El repositorio debe estar accesible para la cuenta de Render y contener la rama
-`codex/radar-live`. El proyecto usa Docker; no configures un sitio estático.
+| Campo | Valor |
+| --- | --- |
+| Repository | BynelsonDa/radar-viral |
+| Branch | main |
+| Build command | python3 src/build_static_site.py |
+| Publish directory | public |
+| Auto deploy | On commit |
 
-## Despliegue desde el dashboard
+El nombre del dominio final lo asigna Render; no existe una URL de aplicación
+hasta crear ese servicio. Para permitir que un agente lo cree mediante la API,
+configura `RENDER_API_KEY` de forma segura en los ajustes de este entorno. No es
+necesaria esa API key si lo creas desde el dashboard de Render.
 
-1. En Render abre **New → Blueprint** y conecta `BynelsonDa/radar-viral`.
-2. Selecciona la rama `codex/radar-live` y el archivo `render.yaml`.
-3. Revisa los servicios y el coste. Introduce `YOUTUBE_API_KEY` en el campo seguro
-   del recolector al que Render solicitará valor. No subas la clave a Git.
-4. Confirma el Blueprint. MySQL generará sus contraseñas y las compartirá solo con
-   la web y el worker mediante referencias internas.
-5. Espera a que los tres servicios estén activos. Abre la URL HTTPS que Render
-   asigne a `radar-viral-web`. `/health` debe devolver `{"status":"ok"}`.
-6. Verifica que `/api/status` muestre `last_success_at` para `refresh` y
-   `discovery`, sin `last_error`, y que el panel muestre videos reales.
+## Cómo llegan los datos
 
-No copies valores de autenticación proxy de Codex en Render. La clave configurada
-para las solicitudes de este entorno no se convierte automáticamente en una
-credencial de la cuenta de alojamiento. Introduce la clave real exclusivamente
-mediante la configuración segura de Render.
+Cada hora, aproximadamente al minuto 17, GitHub Actions ejecuta el recolector.
+Consulta métricas de los videos guardados y, cada seis horas, descubre candidatos
+nuevos. Guarda solo métricas públicas en `data/live.json` y hace un commit en
+`main`. El despliegue automático de Render reconstruye el sitio al recibir ese
+commit. La clave de API permanece en GitHub Actions y nunca llega al navegador.
 
-Para que un agente administre Render se necesita una API key de Render, guardada
-en el secreto `RENDER_API_KEY` de los ajustes del entorno, con destino
-`api.render.com`. No la pegues en el chat. Debe conocerse también el workspace
-correcto y aprobarse el presupuesto antes de crear servicios facturables.
+El sitio comprueba los datos publicados cada minuto mientras esté visible. La
+hora de captura se muestra en la pantalla. Si pasan más de tres horas sin una
+captura nueva, se avisa de que está pendiente de actualización. Ante un error de
+YouTube se conserva la captura anterior y falla la tarea, sin publicar datos
+parciales. «Actualizar datos» recarga la captura disponible; no gasta cuota.
 
-## Actualización y límites
+Esta opción tiene **datos periódicos, no instantáneos**. Las colas de GitHub,
+el build de Render y los retrasos de YouTube pueden aumentar la demora. En
+repositorios sin actividad, GitHub puede desactivar cron; revisa Actions si las
+capturas dejan de actualizarse. No se promete disponibilidad continua ni un SLA.
 
-- El worker actualiza hasta 500 videos guardados cada 15 minutos. Prioriza los
-  que llevan más tiempo sin actualizarse; con más de 500, hacen falta varios
-  ciclos para cubrirlos todos.
-- Descubre candidatos nuevos cada 6 horas con hasta siete búsquedas. Configura
-  `SEARCH_TERMS` en el worker, separados por punto y coma.
-- El navegador consulta la base cada minuto mientras la pestaña esté visible.
-  Abrir el panel o pulsar actualizar no dispara búsquedas de YouTube.
-- Son datos periódicos, no un flujo instantáneo. YouTube puede retrasar métricas.
-  CTR, ingresos y retención privada no están disponibles.
-- Los intervalos mínimos son 5 minutos para métricas y 1 hora para búsquedas;
-  acortarlos aumenta consumo de cuota. La configuración por defecto supone
-  aproximadamente 2800 unidades/día para 7 búsquedas cada 6 h, más hasta unas
-  960 consultas de estadísticas/día para 500 videos cada 15 min. El coste real
-  depende de la cuota y las tarifas vigentes de YouTube y del volumen recopilado.
-- Un bloqueo de MySQL evita ejecuciones simultáneas. Los tiempos de los trabajos
-  se guardan en MySQL para no repetir búsquedas al reiniciar el worker.
-- Ante errores se conserva la última captura y se muestra un aviso. El worker
-  reintenta en el siguiente intervalo; no imprime URLs con la API key.
+## Cuotas gratuitas
 
-Las claves de API de Google restringidas a IP deben permitir la salida de Render.
-La web no necesita una clave de YouTube. Solo el worker realiza consultas externas.
+El repositorio es privado: GitHub Actions usa la cuota de minutos incluida en el
+plan de la cuenta, compartida con otros workflows. Una ejecución por hora supone
+unas 720–744 ejecuciones al mes. Cada ejecución tiene un timeout de cinco minutos,
+pero normalmente termina mucho antes. El consumo exacto debe verificarse en
+**GitHub → Settings → Billing and licensing → Usage**. Mantén desactivado el
+consumo de pago si necesitas un coste estrictamente cero; al agotar la cuota,
+las actualizaciones se detendrán hasta recuperarla.
 
-## Persistencia y operación
+Render Static Sites no requiere un proceso de pago. Su almacenamiento, builds
+y transferencia están sujetos a las cuotas gratuitas vigentes de la cuenta.
+No cambies el servicio a Web Service ni añadas discos o workers de pago.
 
-No elimines el disco de MySQL para redesplegar. Mantén copias con herramientas de
-MySQL (por ejemplo `mysqldump`) fuera del disco; un snapshot del disco no reemplaza
-un backup consistente de la base. Las métricas recopiladas en el entorno Codex
-no se migran solas; el worker llena la base nueva con datos de YouTube.
+YouTube también aplica su propia cuota. Se limita el conjunto a 500 videos de
+los últimos 60 días. La búsqueda usa hasta siete términos, cada seis horas;
+los videos conocidos se consultan en lotes de 50 cada hora. Ajusta términos en
+`.github/workflows/refresh-data.yml` si cambia el objetivo del radar.
 
-`autoDeployTrigger` está desactivado: los commits no publican versiones sin una
-acción de despliegue. Render termina HTTPS; Waitress sirve la app Flask interna.
-La web es de solo lectura y muestra métricas públicas. No expongas MySQL a internet.
+Los datos publicados son estadísticas públicas de YouTube. No se publican el
+repositorio, claves, credenciales de Render ni información privada del canal.
 
-## Validación local
-
-Con MySQL y `DB_*` configurados, ejecuta:
+## Validación y build local
 
 ```bash
-.venv/bin/python -m pip install -r requirements.txt
-.venv/bin/python src/database.py
-.venv/bin/python -m unittest discover -s tests -v
-.venv/bin/python src/worker.py --once
-.venv/bin/python src/dashboard.py
+python3 -m pip install -r requirements-static.txt
+python3 src/collect_static.py
+python3 src/build_static_site.py
 ```
 
-Para ejecutar la actualización periódica de forma continua, usa otro proceso:
+El build solo necesita la biblioteca estándar de Python y una captura existente.
+No requiere MySQL ni la clave de YouTube. La web completa está en `public/`, que
+se excluye de Git porque Render la genera. La captura `data/live.json` sí se
+versiona para conservarla entre ejecuciones del recolector.
 
-```bash
-.venv/bin/python src/worker.py
-```
-
-Construye la imagen con `docker build -t radar-viral .`. En Codex, si el build
-necesita la CA del proxy, añade
-`--secret id=proxy_ca,src=/etc/ssl/certs/ca-certificates.crt`. No se desactiva TLS.
+Las implementaciones opcionales de Flask/MySQL y de HTML portátil permanecen
+para desarrollo; no forman parte de la configuración gratuita activa.

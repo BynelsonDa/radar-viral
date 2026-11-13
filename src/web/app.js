@@ -118,6 +118,11 @@ async function load() {
   $('updated').textContent = 'Datos públicos de YouTube';
   const params = new URLSearchParams(new FormData($('filters'))); params.set('page', page);
   try {
+    if (window.RADAR_LIVE_FILE) {
+      const capture = await fetch(window.RADAR_LIVE_FILE, {signal: controller.signal, cache:'no-store'});
+      if (!capture.ok) throw new Error('No se pudo cargar la captura de datos. Reintenta en unos momentos.');
+      window.RADAR_SNAPSHOT = await capture.json();
+    }
     const response = window.RADAR_SNAPSHOT
       ? {ok: true, json: async () => snapshotData(params)}
       : await fetch(`/api/videos?${params}`, {signal: controller.signal});
@@ -126,6 +131,7 @@ async function load() {
     for (const id of ['total', 'views', 'channels']) $(id).textContent = number(data.summary[id]);
     $('videos').replaceChildren(...data.videos.map(card));
     renderCharts(data.charts, data.summary.total);
+    if (window.RADAR_LIVE_FILE) liveStatus();
     $('status').textContent = data.videos.length ? `${data.summary.total} candidatos coinciden con tus filtros.` : 'No hay videos para estos filtros. Prueba otra búsqueda o ejecuta el recolector para incorporar datos.';
     $('page').textContent = `Página ${page}`;
     $('prev').disabled = page <= 1; $('next').disabled = page * data.page_size >= data.summary.total;
@@ -143,6 +149,12 @@ $('next').addEventListener('click', () => {page++; load();});
 load();
 
 async function liveStatus() {
+  if (window.RADAR_LIVE_FILE) {
+    const stamp=window.RADAR_SNAPSHOT?.exported_at;
+    const stale=!stamp || Date.now()-Date.parse(stamp)>3*3600000;
+    $('live-status').textContent = `${stale ? 'Captura pendiente de actualización' : 'Datos públicos actualizados periódicamente'} · programación cada hora · última captura: ${dateTime(stamp)}. GitHub y YouTube pueden demorar las actualizaciones.`;
+    return;
+  }
   if (window.RADAR_SNAPSHOT) {
     $('live-status').textContent = 'Copia portátil: sin actualización automática.';
     return;
@@ -165,7 +177,7 @@ async function liveStatus() {
   }
 }
 liveStatus();
-if (!window.RADAR_SNAPSHOT) {
+if (window.RADAR_LIVE_FILE || !window.RADAR_SNAPSHOT) {
   setInterval(() => {
     if (!document.hidden) { load(); liveStatus(); }
   },60000);
