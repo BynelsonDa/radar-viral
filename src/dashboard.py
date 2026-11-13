@@ -69,7 +69,9 @@ def dashboard_data(params):
                 (where + ' AND ' if where else ' WHERE ') +
                 'v.published_at IS NOT NULL GROUP BY weekday, slot', values)
             heatmap = cursor.fetchall()
-            return {'summary': summary, 'videos': videos, 'page': page, 'page_size': 24,
+            cursor.execute('SELECT v.* FROM videos v' + where, values)
+            idea_videos = cursor.fetchall()
+            return {'idea_videos':idea_videos, 'summary': summary, 'videos': videos, 'page': page, 'page_size': 24,
                     'charts': {'timeline': timeline, 'top': top, 'channels': channels, 'heatmap': heatmap}}
     finally:
         conn.close()
@@ -135,7 +137,7 @@ def health():
 @app.get('/')
 @app.get('/<path:filename>')
 def static_file(filename='index.html'):
-    if filename not in ('index.html','app.js','style.css'):
+    if filename not in ('index.html','app.js','style.css','ideas.js'):
         return json_response({'error':'No encontrado'},404)
     return send_from_directory(ROOT / 'web',filename)
 

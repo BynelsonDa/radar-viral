@@ -109,6 +109,80 @@ function renderCharts(charts, total) {
   $('heatmap').replaceChildren(...grid);
 }
 
+let ideaRows=[], ideaAt=null, visibleIdeas=[];
+function evidenceLink(source) {
+  const link=element('a','evidence-link',source.title);
+  link.href=`https://www.youtube.com/watch?v=${encodeURIComponent(source.id)}`;
+  link.target='_blank';link.rel='noopener noreferrer';return link;
+}
+function briefText(idea) {
+  return `${idea.name} — ${idea.confidence}\nIdea: ${idea.angle}\nGancho propuesto: ${idea.hook}\nGuion de 20–40 s (propuesto):\n${idea.steps.map((step,i)=>`${i+1}. ${step}`).join('\n')}\nEvidencia: ${idea.count} videos, ${idea.channels} canales, ${number(idea.medianDaily)} vistas/día (mediana histórica).\nPatrón observado: ${idea.observedHook}\nReferencias:\n${idea.sources.map(source=>`https://www.youtube.com/watch?v=${encodeURIComponent(source.id)}`).join('\n')}`;
+}
+function signalList(id,groups,isHook=false) {
+  const nodes=groups.slice(0,5).map((group,index)=>{
+    const item=element('article','signal');
+    const head=element('div','signal-title');head.append(element('span','signal-index',String(index+1).padStart(2,'0')),element('strong','',group.name));
+    item.append(head,element('p','signal-metric',isHook ? `${group.count} videos · ${group.share.toFixed(0)}% de la muestra` : `${number(group.medianDaily)} vistas/día · mediana`),
+      element('p','caption',`${group.count} videos · ${group.channels} canales · ${number(group.views)} vistas acumuladas`));
+    if(group.count<3)item.append(element('span','sample-tag','Muestra pequeña'));
+    if(isHook)item.append(element('p','caption',`Ejemplo de estructura: «${group.sample}»`));
+    const details=element('details','sources');details.append(element('summary','','Ver videos de referencia'));
+    group.sources.forEach(source=>details.append(evidenceLink(source)));item.append(details);return item;
+  });
+  $(id).replaceChildren(...(nodes.length ? nodes : [element('p','empty-chart','No hay patrones suficientes con estos filtros.')]));
+}
+function renderIdeas(rows,at) {
+  ideaRows=rows;ideaAt=at;
+  const selected=$('ideas-niche').value;
+  const analysis=RadarIdeas.analyze(rows,at);
+  $('ideas-niche').replaceChildren(element('option','','Todos los nichos'));
+  $('ideas-niche').firstChild.value='';
+  for(const niche of analysis.niches) {
+    const option=element('option','',niche.name);option.value=niche.name;$('ideas-niche').append(option);
+  }
+  if(analysis.niches.some(n=>n.name===selected))$('ideas-niche').value=selected;
+  updateIdeaPanel();
+}
+function updateIdeaPanel() {
+  const niche=$('ideas-niche').value;
+  const rows=niche ? ideaRows.filter(v=>RadarIdeas.nicheFor(v.title)===niche) : ideaRows;
+  const data=RadarIdeas.analyze(rows,ideaAt);
+  const minimum=Number($('ideas-min').value);
+  const keep=group=>group.count>=minimum;
+  $('ideas-coverage').textContent=`${data.total} videos analizados · ${data.classified} clasificados por título · ${data.unclassified} sin clasificar. Se usan todos los resultados de tus filtros, no solo la página visible. Los nichos y temas son etiquetas aproximadas.`;
+  signalList('niche-ranking',data.niches.filter(keep));
+  signalList('hook-ranking',data.hooks.filter(keep),true);
+  signalList('topic-ranking',data.topics.filter(keep));
+  visibleIdeas=data.ideas.filter(keep).slice(0,6);
+  $('download-ideas').disabled=!visibleIdeas.length;
+  const cards=visibleIdeas.map((idea,index)=>{
+    const article=element('article','idea-card');
+    const head=element('div','section-title');head.append(element('span','eyebrow',`IDEA ${String(index+1).padStart(2,'0')}`),element('span','sample-tag',idea.confidence));
+    article.append(head,element('h4','',idea.name),element('p','idea-angle',idea.angle));
+    const hook=element('blockquote','',idea.hook);article.append(element('span','idea-label','GANCHO PROPUESTO'),hook,
+      element('p','caption',`Patrón observado: ${idea.observedHook}`));
+    const script=element('ol','idea-script');idea.steps.forEach(step=>script.append(element('li','',step)));
+    article.append(element('span','idea-label','GUION PROPUESTO · 20–40 S'),script,
+      element('p','idea-evidence',`${idea.count} videos · ${idea.channels} canales · ${number(idea.medianDaily)} vistas/día (mediana)`));
+    const details=element('details','sources');details.append(element('summary','','Consultar evidencia'));
+    idea.sources.forEach(source=>details.append(evidenceLink(source)));article.append(details);
+    const copy=element('button','copy-idea','Copiar brief');
+    copy.addEventListener('click',async()=>{
+      try {await navigator.clipboard.writeText(briefText(idea));$('ideas-copy-status').textContent=`Brief de «${idea.name}» copiado.`;}
+      catch {$('ideas-copy-status').textContent='No se pudo copiar. Usa Descargar ideas para guardar los briefs.';}
+    });article.append(copy);return article;
+  });
+  $('idea-cards').replaceChildren(...(cards.length ? cards : [element('p','empty-chart','No hay ideas con suficiente evidencia para estos filtros. Amplía las fechas o reduce el mínimo de repeticiones.')]));
+}
+$('ideas-niche').addEventListener('change',updateIdeaPanel);
+$('ideas-min').addEventListener('change',updateIdeaPanel);
+$('download-ideas').addEventListener('click',()=>{
+  const text=`Radar Viral · Ideas para próximos Shorts\nBasadas en títulos y métricas de la muestra; no garantizan viralidad.\n\n${visibleIdeas.map(briefText).join('\n\n---\n\n')}`;
+  const url=URL.createObjectURL(new Blob([text],{type:'text/plain;charset=utf-8'}));
+  const link=element('a','');link.href=url;link.download='ideas-para-proximos-shorts.txt';link.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+
 async function load() {
   controller?.abort(); controller = new AbortController();
   $('status').className = ''; $('status').textContent = 'Consultando datos…';
@@ -116,6 +190,10 @@ async function load() {
   $('videos').replaceChildren(); $('prev').disabled = true; $('next').disabled = true;
   for (const id of ['total','views','channels']) $(id).textContent = '—';
   $('updated').textContent = 'Datos públicos de YouTube';
+  $('ideas-coverage').textContent='Consultando ideas…';
+  $('download-ideas').disabled=true;
+  $('idea-cards').replaceChildren();
+  for(const id of ['niche-ranking','hook-ranking','topic-ranking'])$(id).replaceChildren();
   const params = new URLSearchParams(new FormData($('filters'))); params.set('page', page);
   try {
     if (window.RADAR_LIVE_FILE) {
@@ -131,6 +209,7 @@ async function load() {
     for (const id of ['total', 'views', 'channels']) $(id).textContent = number(data.summary[id]);
     $('videos').replaceChildren(...data.videos.map(card));
     renderCharts(data.charts, data.summary.total);
+    renderIdeas(data.idea_videos || [],window.RADAR_SNAPSHOT?.exported_at || new Date().toISOString());
     if (window.RADAR_LIVE_FILE) liveStatus();
     $('status').textContent = data.videos.length ? `${data.summary.total} candidatos coinciden con tus filtros.` : 'No hay videos para estos filtros. Prueba otra búsqueda o ejecuta el recolector para incorporar datos.';
     $('page').textContent = `Página ${page}`;
@@ -139,6 +218,8 @@ async function load() {
   } catch (error) {
     if (error.name === 'AbortError') return;
     resetCharts('Datos no disponibles');
+    ideaRows=[];visibleIdeas=[];
+    $('ideas-coverage').textContent='No se pudieron calcular ideas. Reintenta cuando se recuperen los datos.';
     $('status').className = 'error'; $('status').textContent = error.message;
   }
 }

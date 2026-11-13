@@ -28,6 +28,7 @@ function snapshotData(params) {
   });
   const page = Number(params.get('page')||1);
   return {
+    idea_videos: rows,
     summary:{total:rows.length,views:rows.reduce((n,v)=>n+v.view_count,0),channels:new Set(rows.map(v=>v.channel_title).filter(v=>v!=null)).size,updated:rows.map(v=>v.last_seen_at).filter(Boolean).sort().at(-1)||null},
     videos:rows.slice((page-1)*24,page*24),page,page_size:24,
     charts:{timeline:[...byDay].sort(([a],[b])=>a.localeCompare(b)).map(([day,count])=>({day,count})),

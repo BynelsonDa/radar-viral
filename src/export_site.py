@@ -18,9 +18,9 @@ def export_site(output):
     html = (web / 'index.html').read_text()
     html = html.replace('<link rel="stylesheet" href="/style.css">', '<style>'+(web/'style.css').read_text()+'</style>')
     scripts = '<script>window.RADAR_SNAPSHOT='+payload+';</script>'
-    for filename in ['offline.js','app.js']:
+    for filename in ['offline.js','ideas.js','app.js']:
         scripts += '<script>'+ (web/filename).read_text().replace('</script','<\\/script')+'</script>'
-    html = html.replace('<script src="/app.js" defer></script>','')
+    html = html.replace('<script src="/app.js" defer></script>','').replace('<script src="/ideas.js" defer></script>','')
     html = html.replace('</body>',scripts+'</body>')
     html = html.replace('href="/"','href="#overview"')
     html = html.replace('↻ Actualizar datos','↻ Recargar vista')

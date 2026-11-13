@@ -1,11 +1,11 @@
 <!doctype html>
 <html lang="es">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Radar Viral · Analítica</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Radar Viral · Analítica</title><link rel="stylesheet" href="/style.css"><script src="/ideas.js" defer></script><script src="/app.js" defer></script></head>
 <body>
 <header><a class="brand" href="/" aria-label="Radar Viral inicio"><span class="brand-icon">&#9654;&#xfe0e;</span> Radar<span class="accent">Viral</span></a><span class="header-info"><i></i> YOUTUBE DATA <span class="tag">MVP</span></span></header>
-<aside aria-label="Navegación"><a href="#overview" title="Resumen" aria-label="Resumen">⌂</a><a href="#charts" title="Gráficos" aria-label="Gráficos">▥</a><a href="#explorer" title="Videos" aria-label="Videos">▷</a></aside>
+<aside aria-label="Navegación"><a href="#overview" title="Resumen" aria-label="Resumen">⌂</a><a href="#charts" title="Gráficos" aria-label="Gráficos">▥</a><a href="#ideas" title="Ideas para próximos Shorts" aria-label="Ideas para próximos Shorts">✦</a><a href="#explorer" title="Videos" aria-label="Videos">▷</a></aside>
 <main id="overview">
-<div class="page-title"><div><p class="eyebrow">INTELIGENCIA DE CONTENIDO</p><h1>Tu radar de oportunidades<span class="accent">.</span></h1></div><button id="refresh" type="button">↻ Actualizar datos</button></div>
+<div class="page-title"><div><p class="eyebrow">INTELIGENCIA DE CONTENIDO</p><h1>Tu radar de oportunidades<span class="accent">.</span></h1></div><div class="page-actions"><a class="button-link" href="#ideas">✦ Ideas para próximos Shorts</a><button id="refresh" type="button">↻ Actualizar datos</button></div></div>
 <form id="filters"><label class="search">Buscar por título o canal<input id="q" name="q" placeholder="Buscar videos o canales…" maxlength="200" type="search"></label><label>Publicado en<select id="days" name="days"><option value="0">Cualquier fecha</option><option value="7">Últimos 7 días</option><option value="30">Últimos 30 días</option><option value="60">Últimos 60 días</option></select></label><label>Ordenar videos<select id="sort" name="sort"><option value="views">Más visualizaciones</option><option value="recent">Más recientes</option><option value="growth">Crecimiento por hora</option></select></label><button type="submit" class="primary">Explorar →</button></form>
 <p id="live-status" class="note" role="status" aria-live="polite">Comprobando actualización automática…</p><p id="status" role="status" aria-live="polite">Cargando videos…</p>
 <div id="charts" class="analytics">
@@ -15,6 +15,14 @@
 <section class="panel distribution-panel"><div class="panel-heading"><h2>Distribución por canal</h2></div><p class="caption">Participación en los candidatos encontrados</p><div id="distribution" class="distribution"></div></section>
 <section class="panel heat-panel"><div class="panel-heading"><h2>Cuándo se publicaron</h2><span class="tag">UTC</span></div><p class="caption">Frecuencia observada · no indica el mejor horario para publicar</p><div id="heatmap" class="heatmap"></div></section>
 </div>
+<section id="ideas" class="ideas-section panel">
+<div class="section-title"><div><p class="eyebrow">DE LA MÉTRICA AL GUION</p><h2>Ideas para próximos Shorts</h2></div><span class="tag">ANÁLISIS DE LA MUESTRA</span></div>
+<p class="note">Nichos y temas inferidos de los títulos. Los ganchos son patrones de títulos, no del audio. Vistas/día = vistas acumuladas ÷ días desde publicación (mínimo 1 día); se usa la mediana de cada grupo. No mide retención ni garantiza viralidad.</p>
+<p id="ideas-coverage" class="caption" aria-live="polite"></p>
+<div class="ideas-controls"><label>Explorar un nicho<select id="ideas-niche"><option value="">Todos los nichos</option></select></label><label>Repeticiones mínimas<select id="ideas-min"><option value="1">Mostrar también señales iniciales</option><option value="3">Al menos 3 videos por grupo</option></select></label></div>
+<div class="signal-grid"><section><h3>Nichos con más tracción</h3><p class="caption">Por mediana de vistas/día</p><div id="niche-ranking"></div></section><section><h3>Ganchos más usados</h3><p class="caption">Por frecuencia en títulos · puede haber varios por video</p><div id="hook-ranking"></div></section><section><h3>Temas con más tracción</h3><p class="caption">Por mediana de vistas/día</p><div id="topic-ranking"></div></section></div>
+<div class="section-title"><h3>Briefs para producir</h3><button id="download-ideas" disabled>Descargar ideas (.txt)</button></div><p class="caption">Propuestas originales a partir de los temas detectados. Abre las referencias para evaluar el contexto antes de producir.</p><p id="ideas-copy-status" role="status" aria-live="polite"></p><div id="idea-cards" class="idea-cards"></div>
+</section>
 <section id="explorer" class="explorer"><div class="section-title"><h2>Videos en el radar</h2><span class="tag">MÉTRICAS PÚBLICAS</span></div><p class="note">La duración no confirma que sean Shorts. El crecimiento requiere dos mediciones separadas en el tiempo. CTR e ingresos no están disponibles con datos públicos.</p><div id="videos" class="grid"></div><nav class="pagination" aria-label="Páginas de resultados"><button id="prev" disabled>← Anterior</button><span id="page">Página 1</span><button id="next" disabled>Siguiente →</button></nav></section>
 <footer><span>RADAR VIRAL / YOUTUBE ANALYTICS</span><span id="updated">Datos públicos de YouTube</span></footer>
 </main></body></html>
