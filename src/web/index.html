@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="es">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Radar Viral · Analítica</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script></head>
+<body>
+<header><a class="brand" href="/" aria-label="Radar Viral inicio"><span class="brand-icon">&#9654;&#xfe0e;</span> Radar<span class="accent">Viral</span></a><span class="header-info"><i></i> YOUTUBE DATA <span class="tag">MVP</span></span></header>
+<aside aria-label="Navegación"><a href="#overview" title="Resumen" aria-label="Resumen">⌂</a><a href="#charts" title="Gráficos" aria-label="Gráficos">▥</a><a href="#explorer" title="Videos" aria-label="Videos">▷</a></aside>
+<main id="overview">
+<div class="page-title"><div><p class="eyebrow">INTELIGENCIA DE CONTENIDO</p><h1>Tu radar de oportunidades<span class="accent">.</span></h1></div><button id="refresh" type="button">↻ Actualizar datos</button></div>
+<form id="filters"><label class="search">Buscar por título o canal<input id="q" name="q" placeholder="Buscar videos o canales…" maxlength="200" type="search"></label><label>Publicado en<select id="days" name="days"><option value="0">Cualquier fecha</option><option value="7">Últimos 7 días</option><option value="30">Últimos 30 días</option><option value="60">Últimos 60 días</option></select></label><label>Ordenar videos<select id="sort" name="sort"><option value="views">Más visualizaciones</option><option value="recent">Más recientes</option><option value="growth">Crecimiento por hora</option></select></label><button type="submit" class="primary">Explorar →</button></form>
+<p id="live-status" class="note" role="status" aria-live="polite">Comprobando actualización automática…</p><p id="status" role="status" aria-live="polite">Cargando videos…</p>
+<div id="charts" class="analytics">
+<section class="panel timeline-panel"><div class="panel-heading"><h2>Actividad de publicación</h2><span class="legend">● Candidatos</span></div><p class="caption">Videos encontrados por fecha de publicación</p><div id="timeline" class="chart" aria-label="Videos por fecha de publicación"></div></section>
+<section class="panel performance-panel"><div class="panel-heading"><h2>Videos con más vistas</h2><span class="tag">TOP 5</span></div><p class="caption">Visualizaciones públicas acumuladas</p><div id="ranking" class="ranking"></div></section>
+<section class="metrics" aria-label="Resumen de resultados"><article><span>Candidatos encontrados</span><strong id="total">—</strong><small>Videos de hasta 180 segundos</small></article><article><span>Visualizaciones</span><strong id="views">—</strong><small>Acumuladas en los resultados</small></article><article><span>Canales en el radar</span><strong id="channels">—</strong><small>Fuentes de contenido únicas</small></article></section>
+<section class="panel distribution-panel"><div class="panel-heading"><h2>Distribución por canal</h2></div><p class="caption">Participación en los candidatos encontrados</p><div id="distribution" class="distribution"></div></section>
+<section class="panel heat-panel"><div class="panel-heading"><h2>Cuándo se publicaron</h2><span class="tag">UTC</span></div><p class="caption">Frecuencia observada · no indica el mejor horario para publicar</p><div id="heatmap" class="heatmap"></div></section>
+</div>
+<section id="explorer" class="explorer"><div class="section-title"><h2>Videos en el radar</h2><span class="tag">MÉTRICAS PÚBLICAS</span></div><p class="note">La duración no confirma que sean Shorts. El crecimiento requiere dos mediciones separadas en el tiempo. CTR e ingresos no están disponibles con datos públicos.</p><div id="videos" class="grid"></div><nav class="pagination" aria-label="Páginas de resultados"><button id="prev" disabled>← Anterior</button><span id="page">Página 1</span><button id="next" disabled>Siguiente →</button></nav></section>
+<footer><span>RADAR VIRAL / YOUTUBE ANALYTICS</span><span id="updated">Datos públicos de YouTube</span></footer>
+</main></body></html>

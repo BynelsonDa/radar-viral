@@ -2,7 +2,7 @@
 import os
 import re
 from datetime import datetime, timedelta, timezone
-import mysql.connector
+from database import connect
 import requests
 from dotenv import load_dotenv
 
@@ -18,9 +18,13 @@ def duration_seconds(value):
 
 def youtube(endpoint, **params):
     key = os.environ["YOUTUBE_API_KEY"]
-    response = requests.get(f"{BASE}/{endpoint}", params={**params, "key": key}, timeout=30)
-    response.raise_for_status()
-    return response.json()
+    try:
+        response = requests.get(f"{BASE}/{endpoint}", params={**params, "key": key}, timeout=30)
+        response.raise_for_status()
+        return response.json()
+    except (requests.RequestException, ValueError):
+        # Requests exceptions include the URL and its API key. Never propagate them.
+        raise RuntimeError('YouTube no respondió correctamente; verifica clave, red y cuota.') from None
 
 def run():
     terms = [t.strip() for t in os.environ.get("SEARCH_TERMS", "curiosidades").split(";") if t.strip()]
@@ -34,14 +38,28 @@ def run():
                          videoDuration="short", order="viewCount", maxResults=page_size,
                          publishedAfter=since)
         ids.update(x["id"]["videoId"] for x in result.get("items", []) if x.get("id", {}).get("videoId"))
-    conn = mysql.connector.connect(host=os.getenv("DB_HOST", "127.0.0.1"),
-        port=int(os.getenv("DB_PORT", "3306")), database=os.getenv("DB_NAME", "radar_viral"),
-        user=os.getenv("DB_USER", "radar"), password=os.getenv("DB_PASSWORD", ""))
+    return save_videos(ids)
+
+
+def refresh_existing(limit=500):
+    conn = connect()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute('SELECT video_id FROM videos ORDER BY last_seen_at ASC,video_id LIMIT %s', (limit,))
+            ids = [row[0] for row in cursor.fetchall()]
+    finally:
+        conn.close()
+    return save_videos(ids)
+
+
+def save_videos(ids):
+    ids = sorted(ids)
+    conn = connect()
     saved = 0
     try:
         cursor = conn.cursor()
         for offset in range(0, len(ids), 50):
-            batch = list(ids)[offset:offset + 50]
+            batch = ids[offset:offset + 50]
             items = youtube("videos", part="snippet,contentDetails,statistics", id=",".join(batch)).get("items", [])
             for item in items:
                 seconds = duration_seconds(item.get("contentDetails", {}).get("duration"))
@@ -67,7 +85,8 @@ def run():
             conn.commit()
     finally:
         conn.close()
-    print(f"Guardados {saved} candidatos a Shorts. La duración no confirma el formato Shorts.")
+    print(f"Guardados {saved} candidatos a Shorts. La duración no confirma el formato Shorts.", flush=True)
+    return saved
 
 if __name__ == "__main__":
     run()

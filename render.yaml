@@ -1,0 +1,88 @@
+# Three paid services + persistent disk. Review Render's quote before applying.
+services:
+  - type: pserv
+    name: radar-viral-mysql
+    runtime: image
+    image:
+      url: docker.io/library/mysql:8.4
+    region: oregon
+    plan: standard
+    disk:
+      name: mysql-data
+      mountPath: /var/lib/mysql
+      sizeGB: 10
+    envVars:
+      - key: MYSQL_DATABASE
+        value: radar_viral
+      - key: MYSQL_USER
+        value: radar
+      - key: MYSQL_PASSWORD
+        generateValue: true
+      - key: MYSQL_ROOT_PASSWORD
+        generateValue: true
+  - type: web
+    name: radar-viral-web
+    runtime: docker
+    repo: https://github.com/BynelsonDa/radar-viral
+    branch: codex/radar-live
+    region: oregon
+    plan: starter
+    autoDeployTrigger: "off"
+    healthCheckPath: /health
+    envVars:
+      - key: DB_HOST
+        fromService:
+          name: radar-viral-mysql
+          type: pserv
+          property: host
+      - key: DB_PORT
+        value: "3306"
+      - key: DB_NAME
+        value: radar_viral
+      - key: DB_USER
+        value: radar
+      - key: DB_PASSWORD
+        fromService:
+          name: radar-viral-mysql
+          type: pserv
+          envVarKey: MYSQL_PASSWORD
+  - type: worker
+    name: radar-viral-collector
+    runtime: docker
+    repo: https://github.com/BynelsonDa/radar-viral
+    branch: codex/radar-live
+    region: oregon
+    plan: starter
+    autoDeployTrigger: "off"
+    dockerCommand: python src/start.py worker
+    envVars:
+      - key: DB_HOST
+        fromService:
+          name: radar-viral-mysql
+          type: pserv
+          property: host
+      - key: DB_PORT
+        value: "3306"
+      - key: DB_NAME
+        value: radar_viral
+      - key: DB_USER
+        value: radar
+      - key: DB_PASSWORD
+        fromService:
+          name: radar-viral-mysql
+          type: pserv
+          envVarKey: MYSQL_PASSWORD
+      - key: YOUTUBE_API_KEY
+        sync: false
+      - key: SEARCH_TERMS
+        value: curiosidades;historias de terror;inteligencia artificial;datos interesantes;gaming;recetas;fitness
+      - key: REFRESH_INTERVAL_SECONDS
+        value: "900"
+      - key: DISCOVERY_INTERVAL_SECONDS
+        value: "21600"
+      - key: REFRESH_MAX_VIDEOS
+        value: "500"
+      - key: MAX_SEARCHES_PER_RUN
+        value: "7"
+      - key: MAX_RESULTS_PER_SEARCH
+        value: "25"
