@@ -11,6 +11,10 @@ motor), **Starter** para la web y el worker, y un disco de 10 GB. Son recursos
 **de pago**. Revisa el presupuesto que muestre Render antes de confirmar. No se
 han creado recursos de Render automáticamente por guardar este archivo.
 
+Estimación consultada el 13 de noviembre de 2026: US$7 web + US$7 worker +
+US$25 MySQL + US$2,50 disco = **US$41,50/mes**, antes de impuestos, cargos del
+workspace y consumos adicionales. Confirma siempre el presupuesto final de Render.
+
 El repositorio debe estar accesible para la cuenta de Render y contener la rama
 `codex/radar-live`. El proyecto usa Docker; no configures un sitio estático.
 
