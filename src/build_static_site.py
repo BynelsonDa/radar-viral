@@ -12,11 +12,13 @@ def build(output):
     html=html.replace('href="/style.css"','href="./style.css"')
     html=html.replace('<script src="/ideas.js" defer></script>','<script src="./ideas.js" defer></script>')
     html=html.replace('<script src="/app.js" defer></script>', '<script>window.RADAR_LIVE_FILE="./data/live.json";</script><script src="./offline.js" defer></script><script src="./app.js" defer></script>')
+    html=html.replace('<script src="/channel-panel.js" defer></script>','<script src="./channel-panel.js" defer></script>')
     (output/'index.html').write_text(html)
-    for filename in ['style.css','app.js','offline.js','ideas.js']:
+    for filename in ['style.css','app.js','offline.js','ideas.js','channel-panel.js']:
         shutil.copyfile(web/filename,output/filename)
     (output/'data').mkdir(exist_ok=True)
     shutil.copyfile(ROOT/'data/live.json',output/'data/live.json')
+    shutil.copyfile(ROOT/'data/channel.json',output/'data/channel.json')
     print('Sitio estático generado; no incluye credenciales.')
 
 
