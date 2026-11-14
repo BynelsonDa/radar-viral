@@ -16,8 +16,9 @@ junto al recolector existente, sin cambiar su esquema MySQL ni su dashboard.
 
 **Límites:** la Data API pública no entrega retención, fuentes de tráfico,
 visualizaciones por hora ni el porcentaje que decidió quedarse. Las palabras
-frecuentes de los títulos **no son tendencias verificadas ni volúmenes de
-búsqueda**. Para detectar tendencias en el tiempo, hay que comparar capturas
+frecuentes de los títulos **no son volúmenes de búsqueda**. El explorador de
+ tendencias obtiene una muestra reciente y calcula vistas por día y ritmo
+ relativo frente a la mediana de esa muestra; tampoco es una medida de demanda. Para detectar tendencias en el tiempo, hay que comparar capturas
 persistidas y añadir un módulo de investigación de temas. La duración por sí sola
 no permite confirmar que un video sea un Short.
 
@@ -36,6 +37,7 @@ El proyecto ya utiliza esta variable.
 ```bash
 python src/channel_lab.py audit --handle @Neutrinitoo --limit 100 > neutrinitoo.json
 python src/channel_lab.py comments --video-id oi8RO1rG11s --limit 30 > comentarios.json
+python src/channel_trends.py --days 14 --limit 15 > tendencias.json
 python -m unittest discover -s tests -p test_channel_lab.py -v
 ```
 
