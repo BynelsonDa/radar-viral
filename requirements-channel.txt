@@ -1,0 +1,4 @@
+# Complemento opcional para publicar respuestas autorizadas con OAuth 2.0
+-r requirements.txt
+google-auth>=2.30,<3
+google-auth-oauthlib>=1.2,<2
