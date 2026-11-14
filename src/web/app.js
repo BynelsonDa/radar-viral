@@ -263,3 +263,31 @@ if (window.RADAR_LIVE_FILE || !window.RADAR_SNAPSHOT) {
     if (!document.hidden) { load(); liveStatus(); }
   },60000);
 }
+
+
+// Controles de sesión solo en la versión Flask; el sitio estático sigue público.
+(async function setupSessionControl() {
+  if (window.RADAR_LIVE_FILE || window.RADAR_SNAPSHOT) return;
+  try {
+    const response = await fetch('/api/session', {cache:'no-store'});
+    if (!response.ok) return;
+    const data = await response.json();
+    if (!data.username || !data.csrf_token) return;
+    const header = document.querySelector('header');
+    if (!header) return;
+    const form = document.createElement('form');
+    form.method = 'post'; form.action = '/logout';
+    form.style.cssText = 'display:flex;align-items:center;gap:12px;margin-left:auto';
+    const input = document.createElement('input');
+    input.type = 'hidden'; input.name = 'csrf_token'; input.value = data.csrf_token;
+    const name = document.createElement('span');
+    name.textContent = data.username; name.style.cssText='color:#9db0c4;font-size:12px';
+    const button = document.createElement('button');
+    button.type = 'submit'; button.textContent = 'Cerrar sesión';
+    button.style.cssText='background:#122b4b;color:white;border:1px solid #3569a1;border-radius:8px;padding:8px 12px;cursor:pointer';
+    form.append(input, name, button);
+    header.append(form);
+  } catch {
+    // El sitio exportado, sin login, no ofrece este endpoint.
+  }
+})();
