@@ -1,0 +1,21 @@
+# Separate private Web Service; the original static Render site stays public.
+# Create a NEW Blueprint using this path, or manually create a free Web Service.
+services:
+  - type: web
+    name: radar-viral-privado
+    runtime: python
+    plan: free
+    repo: https://github.com/BynelsonDa/radar-viral
+    branch: main
+    buildCommand: pip install -r requirements-private.txt
+    startCommand: gunicorn --chdir src private_server:app --bind 0.0.0.0:$PORT --workers 1
+    healthCheckPath: /health
+    envVars:
+      - key: AUTH_USERNAME
+        value: neutrinitoo
+      - key: AUTH_PASSWORD_HASH
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: AUTH_COOKIE_SECURE
+        value: "1"
