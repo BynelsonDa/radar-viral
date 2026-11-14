@@ -55,3 +55,23 @@ Pruebas del análisis (sin dependencias adicionales):
 ```bash
 node --test tests/ideas.test.cjs
 ```
+
+
+## Mi canal Neutrinitoo (nuevo)
+
+El dashboard ahora dispone de la sección **Mi canal** independiente del radar
+multicanal: consulta `data/channel.json` y muestra estadísticas públicas del
+canal `@Neutrinitoo` y ranking de sus videos. El workflow de GitHub Actions
+`Actualizar datos de YouTube` actualiza tanto `data/live.json` como
+`data/channel.json` con el secreto `YOUTUBE_API_KEY`. Hasta que se ejecute
+el workflow correctamente, la nueva sección mostrará «auditoría pendiente».
+
+**Comentarios y respuestas:** se muestra una sección introductoria; la gestión
+interactiva de comentarios sigue pendiente de integración en el backend privado.
+El módulo CLI `src/channel_lab.py` ya permite consultar y generar borradores,
+pero no se debe afirmar que exista publicación o aprobación desde la web.
+
+**Login:** `render.yaml` publica un Static Site sin autenticación. Para inicio
+de sesión real hay que desplegar Flask Web Service siguiendo
+[DEPLOY-PRIVATE.md](DEPLOY-PRIVATE.md). El sitio estático original continuará
+público incluso si se añaden pantallas visuales.

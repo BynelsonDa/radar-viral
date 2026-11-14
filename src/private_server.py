@@ -97,6 +97,11 @@ def live_data():
     return send_file(ROOT / "data" / "live.json", mimetype="application/json")
 
 
+@app.get("/data/channel.json")
+def channel_data():
+    return send_file(ROOT / "data" / "channel.json", mimetype="application/json")
+
+
 @app.get("/")
 def index():
     html = (WEB / "index.html").read_text(encoding="utf-8")
@@ -111,7 +116,7 @@ def index():
 
 @app.get("/<path:filename>")
 def assets(filename):
-    if filename not in {"app.js", "style.css", "ideas.js", "offline.js", "private-session.js"}:
+    if filename not in {"app.js", "style.css", "ideas.js", "offline.js", "private-session.js", "channel-panel.js"}:
         abort(404)
     return send_from_directory(WEB, filename)
 
