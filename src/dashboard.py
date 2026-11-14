@@ -2,12 +2,14 @@
 import argparse
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from urllib.parse import parse_qs
-from flask import Flask, Response, request, send_from_directory
+from flask import Flask, Response, request, send_from_directory, redirect, render_template_string, session, url_for
 from waitress import serve
 from database import connect, initialize
+from auth import (configured, valid_login, blocked, failed, clear_attempts,
+                  rate_limit_key, csrf_token, check_csrf)
 
 import mysql.connector
 from dotenv import load_dotenv
@@ -84,6 +86,73 @@ def json_value(value):
 
 
 app = Flask(__name__, static_folder=None)
+app.secret_key = os.getenv("SESSION_SECRET") or os.urandom(32)
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=bool(os.getenv("RENDER") or os.getenv("AUTH_COOKIE_SECURE") == "1"),
+    PERMANENT_SESSION_LIFETIME=timedelta(hours=12),
+)
+
+
+@app.before_request
+def protect_dashboard():
+    # Health check must remain available to infrastructure without login.
+    if request.path in ("/health", "/login"):
+        return None
+    if not configured():
+        return ("Acceso privado sin configurar. Define AUTH_USERNAME, "
+                "AUTH_PASSWORD_HASH y SESSION_SECRET.", 503)
+    if not session.get("authenticated"):
+        if request.path.startswith("/api/"):
+            return json_response({"error": "Debes iniciar sesión."}, 401)
+        return redirect(url_for("login"))
+    return None
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if not configured():
+        return ("El administrador todavía no está activado en el servidor. "
+                "Configura AUTH_USERNAME, AUTH_PASSWORD_HASH y SESSION_SECRET.", 503)
+    if session.get("authenticated"):
+        return redirect("/")
+    error = None
+    status = 200
+    if request.method == "POST":
+        key = rate_limit_key()
+        if not check_csrf(request.form.get("csrf_token", "")):
+            error, status = "Formulario caducado. Actualiza la página.", 400
+        elif blocked(key):
+            error, status = "Demasiados intentos. Inténtalo más tarde.", 429
+        elif valid_login(request.form.get("username", ""), request.form.get("password", "")):
+            clear_attempts(key)
+            session.clear()
+            session.permanent = True
+            session["authenticated"] = True
+            session["username"] = os.getenv("AUTH_USERNAME")
+            csrf_token()
+            return redirect("/")
+        else:
+            failed(key)
+            error, status = "Usuario o contraseña incorrectos.", 401
+    html = (ROOT / "web" / "login.html").read_text(encoding="utf-8")
+    return render_template_string(html, csrf=csrf_token(), error=error), status
+
+
+@app.post("/logout")
+def logout():
+    if not check_csrf(request.form.get("csrf_token", "")):
+        return ("Solicitud inválida.", 400)
+    session.clear()
+    return redirect("/login")
+
+
+@app.get("/api/session")
+def session_api():
+    return json_response({"username": session.get("username"),
+                          "csrf_token": csrf_token()})
+
 
 
 @app.after_request
