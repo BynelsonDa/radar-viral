@@ -1,13 +1,24 @@
 <!doctype html>
 <html lang="es">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Radar Viral · Analítica</title><link rel="stylesheet" href="/style.css"><script src="/ideas.js" defer></script><script src="/app.js" defer></script></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Radar Viral · Analítica</title><link rel="stylesheet" href="/style.css"><script src="/ideas.js" defer></script><script src="/app.js" defer></script><script src="/channel-panel.js" defer></script></head>
 <body>
 <header><a class="brand" href="/" aria-label="Radar Viral inicio"><span class="brand-icon">&#9654;&#xfe0e;</span> Radar<span class="accent">Viral</span></a><span class="header-info"><i></i> YOUTUBE DATA <span class="tag">MVP</span></span></header>
-<aside aria-label="Navegación"><a href="#overview" title="Resumen" aria-label="Resumen">⌂</a><a href="#charts" title="Gráficos" aria-label="Gráficos">▥</a><a href="#ideas" title="Ideas para próximos Shorts" aria-label="Ideas para próximos Shorts">✦</a><a href="#explorer" title="Videos" aria-label="Videos">▷</a></aside>
+<aside aria-label="Navegación"><a href="#overview" title="Resumen" aria-label="Resumen">⌂</a><a href="#my-channel" title="Mi canal" aria-label="Mi canal">◉</a><a href="#channel-comments" title="Comentarios" aria-label="Comentarios">☏</a><a href="#charts" title="Gráficos" aria-label="Gráficos">▥</a><a href="#ideas" title="Ideas para próximos Shorts" aria-label="Ideas para próximos Shorts">✦</a><a href="#explorer" title="Videos" aria-label="Videos">▷</a></aside>
 <main id="overview">
 <div class="page-title"><div><p class="eyebrow">INTELIGENCIA DE CONTENIDO</p><h1>Tu radar de oportunidades<span class="accent">.</span></h1></div><div class="page-actions"><a class="button-link" href="#ideas">✦ Ideas para próximos Shorts</a><button id="refresh" type="button">↻ Actualizar datos</button></div></div>
 <form id="filters"><label class="search">Buscar por título o canal<input id="q" name="q" placeholder="Buscar videos o canales…" maxlength="200" type="search"></label><label>Publicado en<select id="days" name="days"><option value="0">Cualquier fecha</option><option value="7">Últimos 7 días</option><option value="30">Últimos 30 días</option><option value="60">Últimos 60 días</option></select></label><label>Ordenar videos<select id="sort" name="sort"><option value="views">Más visualizaciones</option><option value="recent">Más recientes</option><option value="growth">Crecimiento por hora</option></select></label><button type="submit" class="primary">Explorar →</button></form>
 <p id="live-status" class="note" role="status" aria-live="polite">Comprobando actualización automática…</p><p id="status" role="status" aria-live="polite">Cargando videos…</p>
+<section id="my-channel" class="panel" style="margin-top:24px;padding:24px">
+<div class="section-title"><div><p class="eyebrow">CANAL PROPIO · DATOS REALES</p><h2>Neutrinitoo — Mi canal</h2></div>
+<button id="channel-reload" type="button">↻ Actualizar vista</button></div>
+<p class="note">Analítica pública oficial de @Neutrinitoo. Estos resultados son independientes del radar de otros creadores.</p>
+<div id="channel-content" role="status" aria-live="polite">Consultando captura del canal…</div>
+</section>
+<section id="channel-comments" class="panel" style="margin-top:24px;padding:24px">
+<div class="section-title"><div><p class="eyebrow">GESTIÓN DE COMUNIDAD</p><h2>Comentarios y respuestas sugeridas</h2></div></div>
+<p class="note">El motor de sugerencias ya existe. Para mostrar comentarios y aprobar respuestas desde el navegador necesitamos activar la aplicación privada con login y autorización de YouTube. No se publicará nada automáticamente.</p>
+<a href="https://github.com/BynelsonDa/radar-viral/blob/main/DEPLOY-PRIVATE.md" target="_blank" rel="noopener noreferrer">Configurar versión privada de Radar Viral</a>
+</section>
 <div id="charts" class="analytics">
 <section class="panel timeline-panel"><div class="panel-heading"><h2>Actividad de publicación</h2><span class="legend">● Candidatos</span></div><p class="caption">Videos encontrados por fecha de publicación</p><div id="timeline" class="chart" aria-label="Videos por fecha de publicación"></div></section>
 <section class="panel performance-panel"><div class="panel-heading"><h2>Videos con más vistas</h2><span class="tag">TOP 5</span></div><p class="caption">Visualizaciones públicas acumuladas</p><div id="ranking" class="ranking"></div></section>
