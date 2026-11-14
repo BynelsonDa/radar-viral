@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Iniciar sesión · Radar Viral</title>
+<style>
+:root{color-scheme:dark;font-family:Inter,system-ui,sans-serif}
+*{box-sizing:border-box}body{min-height:100vh;margin:0;background:radial-gradient(ellipse at top,#12365a,#08101e 75%);color:#ecf5ff;display:grid;place-items:center;padding:20px}
+main{width:min(100%,420px);background:#101e31;border:1px solid #30425b;padding:36px;border-radius:20px;box-shadow:0 24px 80px #0006}
+.logo{font-size:25px;font-weight:800;letter-spacing:-1px}.logo span{color:#22cfdf}.eyebrow{color:#75a6be;font-size:11px;letter-spacing:2px;font-weight:700;margin-top:26px}
+h1{font-size:29px;margin:10px 0}p{color:#9db0c4;line-height:1.5}label{display:block;margin:22px 0 8px;font-size:13px;font-weight:600}
+input:not([type=hidden]){width:100%;padding:14px;border:1px solid #42536c;background:#091525;color:white;border-radius:10px;font:inherit}
+input:focus{outline:2px solid #2aaee7;outline-offset:1px}
+button{width:100%;margin-top:26px;border:0;padding:14px;border-radius:10px;background:#016ee4;color:white;font-size:15px;font-weight:700;cursor:pointer}
+button:hover{background:#2389f6}.error{background:#53262d;border:1px solid #9b4550;padding:12px;border-radius:8px;color:#fff}
+small{display:block;margin-top:20px;color:#8ea5b9;text-align:center}
+</style></head>
+<body><main>
+<div class="logo">▶ Radar<span>Viral</span></div>
+<p class="eyebrow">ÁREA PRIVADA</p>
+<h1>Iniciar sesión</h1><p>Accede a tu panel de tendencias y analítica de YouTube.</p>
+{% if error %}<div class="error" role="alert">{{ error }}</div>{% endif %}
+<form method="post" action="/login">
+<input type="hidden" name="csrf_token" value="{{ csrf }}">
+<label for="username">Usuario</label><input id="username" name="username" autocomplete="username" maxlength="128" required autofocus>
+<label for="password">Contraseña</label><input id="password" name="password" type="password" autocomplete="current-password" required>
+<button type="submit">Entrar al dashboard →</button>
+</form><small>Radar Viral · Neutrinitoo</small>
+</main></body></html>
