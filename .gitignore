@@ -4,3 +4,8 @@ __pycache__/
 *.pyc
 .pytest_cache/
 public/
+client_secret*.json
+.youtube-token.json
+*oauth*token*.json
+neutrinitoo.json
+comentarios.json
