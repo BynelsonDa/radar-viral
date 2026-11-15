@@ -29,11 +29,12 @@ jobs:
         run: |
           python src/collect_static.py
           python src/collect_channel_static.py
+          python src/analyze_short.py --video-id=-XyEojvQhkQ --output data/short-audit.json
       - name: Guardar datos públicos
         run: |
           git config user.name 'radar-viral[bot]'
           git config user.email 'radar-viral[bot]@users.noreply.github.com'
-          git add data/live.json data/channel.json
+          git add data/live.json data/channel.json data/short-audit.json
           if git diff --cached --quiet; then exit 0; fi
           git commit -m 'Refresh public YouTube metrics'
           git push origin HEAD:main
